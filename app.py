@@ -3,14 +3,22 @@ import pandas as pd
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import streamlit as st
 import google.generativeai as genai
-from langchain.vectorstores import FAISS
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.vectorstores import FAISS
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+api_key = os.getenv("GOOGLE_API_KEY")
+
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY environment variable is not set.")
+
+
+
+genai.configure(api_key=api_key)
 
 # Function to read Excel and return rows as strings
 def get_excel_text(file):
@@ -36,7 +44,11 @@ def get_conversational_chain():
     Answer:
     """
     
-    model = ChatGoogleGenerativeAI(model="gemini-pro", client=genai, temperature=0.3)
+
+    model = ChatGoogleGenerativeAI(model="gemini-2.0-flash",
+                                   client=genai,
+                                   temperature=0.3)
+
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     chain = load_qa_chain(llm=model, chain_type="stuff", prompt=prompt)
     return chain
